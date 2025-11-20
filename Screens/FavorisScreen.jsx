@@ -1,18 +1,22 @@
 import { View, Text, FlatList, TouchableOpacity, Image, Alert } from "react-native";
 import styles from "../styles/Styles";
 import { Ionicons } from "@expo/vector-icons";
+import { useContext } from "react";
+import { UserContext } from "../Context/Context";
 
-const FavorisScreen = ({ navigation, panier, setPanier, favoris, setFavoris }) => {
+const FavorisScreen = ({ navigation, favoris, setFavoris }) => {
+
+    // Accès au context
+    const { panier, setPanier } = useContext(UserContext);
+
 	// Ajouter un article au panier (ou augmenter sa quantité)
-	const ajouterAuPanier = (produit) => {
+	const ajouterAuPanier = (article) => {
 		setPanier((prev) => {
-			const existe = prev.find((item) => item.id === produit.id);
+			const existe = prev.find((item) => item._id === article._id);
 			if (existe) {
-				// Incrémente la quantité si déjà présent
-				return prev.map((item) => (item.id === produit.id ? { ...item, quantite: (item.quantite || 1) + 1 } : item));
+				return prev.map((item) => (item._id === article._id ? { ...item, quantite: (item.quantite || 1) + 1 } : item));
 			} else {
-				// Sinon ajoute un nouvel article avec quantite = 1
-				return [...prev, { ...produit, quantite: 1 }];
+				return [...prev, { ...article, quantite: 1 }];
 			}
 		});
 	};
@@ -21,7 +25,7 @@ const FavorisScreen = ({ navigation, panier, setPanier, favoris, setFavoris }) =
 	const supprimerDesFavoris = (id) => {
 		setFavoris((prev) => {
 			return prev
-				.map((item) => (item.id === id ? { ...item, quantite: (item.quantite || 1) - 1 } : item))
+				.map((item) => (item._id === id ? { ...item, quantite: (item.quantite || 1) - 1 } : item))
 				.filter((item) => (item.quantite || 0) > 0);
 		});
 	};
@@ -53,7 +57,7 @@ const FavorisScreen = ({ navigation, panier, setPanier, favoris, setFavoris }) =
 
 						<View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
 							<TouchableOpacity
-								onPress={() => supprimerDesFavoris(item.id)}
+								onPress={() => supprimerDesFavoris(item._id)}
 								style={{
 									backgroundColor: "#e74c3c",
 									width: 33,

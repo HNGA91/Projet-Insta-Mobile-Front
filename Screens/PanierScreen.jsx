@@ -1,17 +1,21 @@
 import { View, Text, FlatList, TouchableOpacity, Image, Alert } from "react-native";
 import styles from "../styles/Styles";
+import { useContext } from "react";
+import { UserContext } from "../Context/Context";
 
-const PanierScreen = ({ panier, setPanier }) => {
+const PanierScreen = () => {
+
+	// Accès au context
+	const { panier, setPanier } = useContext(UserContext);
+
 	// Ajouter un article (ou augmenter sa quantité)
-	const ajouterAuPanier = (produit) => {
+	const ajouterAuPanier = (article) => {
 		setPanier((prev) => {
-			const existe = prev.find((item) => item.id === produit.id);
+			const existe = prev.find((item) => item._id === article._id);
 			if (existe) {
-				// Incrémente la quantité si déjà présent
-				return prev.map((item) => item.id === produit.id ? { ...item, quantite: (item.quantite || 1) + 1 } : item);
+				return prev.map((item) => (item._id === article._id ? { ...item, quantite: (item.quantite || 1) + 1 } : item));
 			} else {
-				// Sinon ajoute un nouvel article avec quantite = 1
-				return [...prev, { ...produit, quantite: 1 }];
+				return [...prev, { ...article, quantite: 1 }];
 			}
 		});
 	};
@@ -19,9 +23,7 @@ const PanierScreen = ({ panier, setPanier }) => {
 	// Supprimer un article (ou diminuer sa quantité)
 	const supprimerDuPanier = (id) => {
 		setPanier((prev) => {
-			return prev
-				.map((item) => item.id === id ? { ...item, quantite: (item.quantite || 1) - 1 } : item)
-				.filter((item) => (item.quantite || 0) > 0);
+			return prev.map((item) => (item._id === id ? { ...item, quantite: (item.quantite || 1) - 1 } : item)).filter((item) => (item.quantite || 0) > 0);
 		});
 	};
 
@@ -46,7 +48,7 @@ const PanierScreen = ({ panier, setPanier }) => {
 
 			<FlatList
 				data={panier}
-				keyExtractor={(item, index) => item.id + "-" + index}
+				keyExtractor={(item, index) => item._id + "-" + index}
 				renderItem={({ item }) => (
 					<View style={[styles.itemContainer, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
 						<Image source={{ uri: item.image }} style={styles.image} />
@@ -57,7 +59,7 @@ const PanierScreen = ({ panier, setPanier }) => {
 
 						<View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
 							<TouchableOpacity
-								onPress={() => supprimerDuPanier(item.id)}
+								onPress={() => supprimerDuPanier(item._id)}
 								style={{
 									backgroundColor: "#e74c3c",
 									width: 33,

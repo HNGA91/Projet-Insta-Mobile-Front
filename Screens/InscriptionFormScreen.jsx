@@ -278,10 +278,10 @@ const InscriptionFormScreen = ({ setIsLogin }) => {
 				password: "",
 				confirmPassword: "",
 			});
-            
-			// Marquer comme connecté et navigation vers "Profil"
+
+			// Marquer comme connecté et navigation vers "Catalogue"
 			setIsLogin(true);
-			navigation.navigate("Profil");
+			navigation.navigate("Catalogue");
 		} catch (error) {
 			console.error("Erreur lors de l'insertion :", error);
 			Alert.alert("❌ Erreur", "Impossible d'insérer l'utilisateur.");

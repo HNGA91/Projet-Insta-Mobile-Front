@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 //permet de créer une navigation par tiroir (menu latéral)
 const Drawer = createDrawerNavigator();
 
-const DrawerNavigator = forwardRef(({ route, initialScreen, panier, setPanier, favoris, setFavoris, isLogin, setIsLogin }, ref) => {
+const DrawerNavigator = forwardRef(({ route, initialScreen, favoris, setFavoris, isLogin, setIsLogin }, ref) => {
     const drawerNavigatorRef = useRef();
 
     // Exposer les méthodes pour le parent
@@ -50,8 +50,6 @@ const DrawerNavigator = forwardRef(({ route, initialScreen, panier, setPanier, f
 				children={(props) => (
 					<CatalogueScreen
 						{...props}
-						panier={panier}
-						setPanier={setPanier}
 						isLogin={isLogin}
 						setIsLogin={setIsLogin}
 						favoris={favoris}
@@ -68,8 +66,6 @@ const DrawerNavigator = forwardRef(({ route, initialScreen, panier, setPanier, f
 					children={(props) => (
 						<FavorisScreen
 							{...props}
-							panier={panier}
-							setPanier={setPanier}
 							setIsLogin={setIsLogin}
 							favoris={favoris}
 							setFavoris={setFavoris}
@@ -102,7 +98,7 @@ const DrawerNavigator = forwardRef(({ route, initialScreen, panier, setPanier, f
 			{/* Écrans publics */}
 			<Drawer.Screen
 				name="Panier"
-				children={(props) => <PanierScreen {...props} panier={panier} setPanier={setPanier} isLogin={isLogin} setIsLogin={setIsLogin} />}
+				children={(props) => <PanierScreen {...props} isLogin={isLogin} setIsLogin={setIsLogin} />}
 				options={{ drawerIcon: ({ color, size }) => <Ionicons name="cart" size={size} color={color} />, title: "Panier" }}
 			/>
 
@@ -111,7 +107,7 @@ const DrawerNavigator = forwardRef(({ route, initialScreen, panier, setPanier, f
 				<Drawer.Screen
 					name="Profil"
 					children={(props) => (
-						<ProfilScreen {...props} panier={panier} setPanier={setPanier} isLogin={isLogin} setIsLogin={setIsLogin} favoris={favoris} />
+						<ProfilScreen {...props} isLogin={isLogin} setIsLogin={setIsLogin} favoris={favoris} />
 					)}
 					options={{ drawerIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />, title: "Profil" }}
 				/>

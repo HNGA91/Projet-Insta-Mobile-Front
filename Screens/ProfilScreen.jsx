@@ -3,9 +3,9 @@ import styles from "../styles/Styles";
 import { UserContext } from "../Context/Context";
 import { useContext } from "react";
 
-const ProfilScreen = ({ navigation, panier, favoris, setIsLogin }) => {
+const ProfilScreen = ({ navigation, favoris, setIsLogin }) => {
 
-    const { user, setUser } = useContext(UserContext);
+    const { user, setUser, panier } = useContext(UserContext);
 
 	const handleDeconnexion = () => {
         setUser(null);

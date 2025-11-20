@@ -7,7 +7,6 @@ import DrawerNavigator from "./DrawerNavigator";
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
-	const [panier, setPanier] = useState([]);
 	const [favoris, setFavoris] = useState([]);
 	const [isLogin, setIsLogin] = useState(false);
 
@@ -44,8 +43,6 @@ const TabNavigator = () => {
 			{...props}
 			ref={(ref) => (drawerNavigatorRefs.current.catalogue = ref)}
 			initialScreen="Catalogue"
-			panier={panier}
-			setPanier={setPanier}
 			isLogin={isLogin}
 			setIsLogin={setIsLogin}
 			favoris={favoris}
@@ -58,8 +55,6 @@ const TabNavigator = () => {
 			{...props}
 			ref={(ref) => (drawerNavigatorRefs.current.favoris = ref)}
 			initialScreen="Favoris"
-			panier={panier}
-			setPanier={setPanier}
 			isLogin={isLogin}
 			setIsLogin={setIsLogin}
 			favoris={favoris}
@@ -72,8 +67,6 @@ const TabNavigator = () => {
 			{...props}
 			initialScreen="Panier"
 			ref={(ref) => (drawerNavigatorRefs.current.panier = ref)}
-			panier={panier}
-			setPanier={setPanier}
 			isLogin={isLogin}
 			setIsLogin={setIsLogin}
 		/>
@@ -84,8 +77,6 @@ const TabNavigator = () => {
 			{...props}
 			ref={(ref) => (drawerNavigatorRefs.current.profil = ref)}
 			initialScreen="Profil"
-			panier={panier}
-			setPanier={setPanier}
 			isLogin={isLogin}
 			setIsLogin={setIsLogin}
 			favoris={favoris}

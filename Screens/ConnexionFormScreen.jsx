@@ -140,13 +140,13 @@ const ConnexionFormScreen = ({ setIsLogin, isLogin }) => {
 				// Mettre à jour le contexte utilisateur
 				setUser({
 					nom: user.Nom,
-                    prenom: user.Prenom,
+					prenom: user.Prenom,
 					email: user.Email,
 				});
 
-				// Marquer comme connecté et navigation vers "Profil"
+				// Marquer comme connecté et navigation vers "Catalogue"
 				setIsLogin(true);
-				navigation.navigate("Profil");
+				navigation.navigate("Catalogue");
 			} else {
 				Alert.alert("❌ Erreur", "Email ou mot de passe incorrect.");
 				console.log("❌ Échec de l'authentification, Email ou mot de passe incorrect.");
