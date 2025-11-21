@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, useContext } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { View, StyleSheet, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
 import styles from "../styles/Styles";
 import { Alert } from "react-native";
 import { InitDB } from "../Database/InitDB";
 import { VerifUser } from "../Database/Task"
+import { UserContext } from "../Context/Context";
 
 const ConnexionFormScreen = ({ setIsLogin, isLogin }) => {
     
