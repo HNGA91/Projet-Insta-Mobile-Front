@@ -1,100 +1,41 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import React from "react";
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useContext } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import DrawerNavigator from "./DrawerNavigator";
+import { UserContext } from "../Context/Context";
+import CatalogueScreen from "../Screens/CatalogueScreen";
+import FavorisScreen from "../Screens/FavorisScreen";
+import PanierScreen from "../Screens/PanierScreen";
+import ProfilScreen from "../Screens/ProfilScreen";
+import CatalogueWithDrawer from "./CatalogueWithDrawer";
+import ProfilWithDrawer from "./ProfilWithDrawer";
+import InscriptionFormScreen from "../Screens/InscriptionFormScreen";
+import ConnexionFormScreen from "../Screens/ConnexionFormScreen";
 
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
+	const { user } = useContext(UserContext);
 	const [favoris, setFavoris] = useState([]);
-	const [isLogin, setIsLogin] = useState(false);
 
-	// Références pour chaque navigator drawer
-	const drawerNavigatorRefs = useRef({
-		catalogue: null,
-		favoris: null,
-		panier: null,
-		profil: null,
-	});
-
-	// Fonction pour réinitialiser le drawer quand on change de tab
-	const resetDrawerNavigation = useCallback((drawerKey) => {
-		const drawerRef = drawerNavigatorRefs.current[drawerKey];
-		if (drawerRef) {
-			// Réinitialiser à l'écran initial
-			drawerRef.reset({
-				index: 0,
-				routes: [{ name: initialScreens[drawerKey] }],
-			});
-		}
-	}, []);
-
-	const initialScreens = {
-		catalogue: "Catalogue",
-		favoris: "Favoris",
-		panier: "Panier",
-		profil: "Profil",
-	};
-
-	// Composants séparés pour chaque tab / Chaque screen dispose de son propre Tab & Drawer synchronisé
-	const CatalogueTab = (props) => (
-		<DrawerNavigator
-			{...props}
-			ref={(ref) => (drawerNavigatorRefs.current.catalogue = ref)}
-			initialScreen="Catalogue"
-			isLogin={isLogin}
-			setIsLogin={setIsLogin}
-			favoris={favoris}
-			setFavoris={setFavoris}
-		/>
-	);
-
-	const FavorisTab = (props) => (
-		<DrawerNavigator
-			{...props}
-			ref={(ref) => (drawerNavigatorRefs.current.favoris = ref)}
-			initialScreen="Favoris"
-			isLogin={isLogin}
-			setIsLogin={setIsLogin}
-			favoris={favoris}
-			setFavoris={setFavoris}
-		/>
-	);
-
-	const PanierTab = (props) => (
-		<DrawerNavigator
-			{...props}
-			initialScreen="Panier"
-			ref={(ref) => (drawerNavigatorRefs.current.panier = ref)}
-			isLogin={isLogin}
-			setIsLogin={setIsLogin}
-		/>
-	);
-
-	const ProfilTab = (props) => (
-		<DrawerNavigator
-			{...props}
-			ref={(ref) => (drawerNavigatorRefs.current.profil = ref)}
-			initialScreen="Profil"
-			isLogin={isLogin}
-			setIsLogin={setIsLogin}
-			favoris={favoris}
-		/>
-	);
+	// Signifie que isLogin sera true si user existe
+	const isLogin = !!user;
 
 	return (
 		<Tab.Navigator
 			screenOptions={({ route }) => ({
 				tabBarIcon: ({ color, size }) => {
 					let iconName;
-					if (route.name === "TabCatalogue") {
+					if (route.name === "Catalogue") {
 						iconName = "bag-handle-sharp";
-					} else if (route.name === "TabFavoris") {
+					} else if (route.name === "Favoris") {
 						iconName = "star";
-					} else if (route.name === "TabPanier") {
+					} else if (route.name === "Panier") {
 						iconName = "cart";
-					} else if (route.name === "TabProfil") {
+					} else if (route.name === "Inscription") {
+						iconName = "pencil";
+					} else if (route.name === "Connexion") {
+						iconName = "log-in-outline";
+					} else if (route.name === "Profil") {
 						iconName = "person";
 					}
 					return <Ionicons name={iconName} size={size} color={color} />;
@@ -104,51 +45,38 @@ const TabNavigator = () => {
 				},
 			})}
 		>
-			{/* Écrans publics */}
+			{/* Catalogue - Écrans publics - AVEC Drawer */}
 			<Tab.Screen
-				name="TabCatalogue"
-				component={CatalogueTab}
-				options={{ headerShown: false, title: "Catalogue" }}
-				listeners={{
-					tabPress: () => resetDrawerNavigation("catalogue"),
-				}}
+				name="Catalogue"
+				options={{ headerShown: false }}
+				children={(props) => <CatalogueWithDrawer {...props} favoris={favoris} setFavoris={setFavoris} />}
 			/>
 
-			{/* Écrans protégés - seulement si connecté */}
+			{/* Favoris - Écrans protégés (seulement si connecté) - SANS Drawer (écran direct) */}
 			{isLogin && (
 				<Tab.Screen
-					name="TabFavoris"
-					component={FavorisTab}
-					options={{ headerShown: false, title: "Favoris" }}
-					listeners={{
-						tabPress: () => resetDrawerNavigation("favoris"),
-					}}
+					name="Favoris"
+					options={{ headerShown: false }}
+					children={(props) => <FavorisScreen {...props} favoris={favoris} setFavoris={setFavoris} />}
 				/>
 			)}
 
-			{/* Écrans publics */}
-			<Tab.Screen
-				name="TabPanier"
-				component={PanierTab}
-				options={{ headerShown: false, title: "Panier" }}
-				listeners={{
-					tabPress: () => resetDrawerNavigation("panier"),
-				}}
-			/>
+			{/* Inscription/Connexion - Écrans publics - Seulement si DÉCONNECTÉ  */}
+			{!isLogin && (
+				<>
+					<Tab.Screen name="Inscription" options={{ headerShown: false }} children={(props) => <InscriptionFormScreen {...props} />} />
 
-			{/* Écrans protégés - seulement si connecté */}
-			{isLogin && (
-				<Tab.Screen
-					name="TabProfil"
-					component={ProfilTab}
-					options={{ headerShown: false, title: "Profil" }}
-					listeners={{
-						tabPress: () => resetDrawerNavigation("profil"),
-					}}
-				/>
+					<Tab.Screen name="Connexion" options={{ headerShown: false }} children={(props) => <ConnexionFormScreen {...props} />} />
+				</>
 			)}
+
+			{/* Panier - Écrans publics - SANS Drawer (écran direct) */}
+			<Tab.Screen name="Panier" options={{ headerShown: false }} children={(props) => <PanierScreen {...props} />} />
+
+			{/* Profil - Écrans protégés (seulement si connecté) - AVEC Drawer */}
+			{isLogin && <Tab.Screen name="Profil" options={{ headerShown: false }} children={(props) => <ProfilWithDrawer {...props} />} />}
 		</Tab.Navigator>
 	);
-}
+};
 
 export default TabNavigator;

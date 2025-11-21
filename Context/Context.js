@@ -6,8 +6,34 @@ export const UserContext = createContext();
 //Definir le fournisseur du context
 export const UserProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
-    const [articles, setArticles] = useState([]);
-    const [panier, setPanier] = useState([]);
+	const [articles, setArticles] = useState([]);
+	const [panier, setPanier] = useState([]);
 
-	return <UserContext.Provider value={{ user, setUser, articles, setArticles, panier, setPanier }}>{children}</UserContext.Provider>;
+	// Fonction de connexion
+	const login = (userData) => {
+		setUser(userData);
+	};
+
+	// Fonction de déconnexion
+	const logout = () => {
+		setUser(null);
+		setPanier([]);
+	};
+
+	return (
+		<UserContext.Provider
+			value={{
+				user,
+				setUser,
+				articles,
+				setArticles,
+				panier,
+				setPanier,
+				login,
+				logout,
+			}}
+		>
+			{children}
+		</UserContext.Provider>
+	);
 };

@@ -5,8 +5,9 @@ import styles from "../styles/Styles";
 import { Alert } from "react-native";
 import { InitDB } from "../Database/InitDB";
 import { InsertUser } from "../Database/Task";
+import { UserContext } from "../Context/Context";
 
-const InscriptionFormScreen = ({ setIsLogin }) => {
+const InscriptionFormScreen = () => {
 	const [formData, setFormData] = useState({ nom: "", prenom: "", email: "", tel: "", password: "", confirmPassword: "" });
 	const [error, setError] = useState("");
 	const [errorNom, setErrorNom] = useState("");
@@ -16,6 +17,9 @@ const InscriptionFormScreen = ({ setIsLogin }) => {
 	const [errorPassword, setErrorPassword] = useState("");
 	const [errorConfirmPassword, setErrorConfirmPassword] = useState("");
 	const [isValid, setIsValid] = useState(false);
+
+	// Accès au context
+	const { setUser } = useContext(UserContext);
 
 	// Ref pour déplacer le focus entre les inputs
 	const nomInputRef = useRef(null);
@@ -279,8 +283,12 @@ const InscriptionFormScreen = ({ setIsLogin }) => {
 				confirmPassword: "",
 			});
 
-			// Marquer comme connecté et navigation vers "Catalogue"
-			setIsLogin(true);
+			// Met automatiquement à jour isLogin dans le TabNavigator et navigation vers "Catalogue"
+			login({
+				nom: formData.nom,
+				prenom: formData.prenom,
+				email: formData.email,
+			});
 			navigation.navigate("Catalogue");
 		} catch (error) {
 			console.error("Erreur lors de l'insertion :", error);

@@ -4,7 +4,7 @@ import styles from "../styles/Styles";
 import { useState, useEffect, useContext, useCallback, useMemo } from "react";
 import { UserContext } from "../Context/Context";
 
-const CatalogueScreen = ({ navigation, isLogin, favoris, setFavoris }) => {
+const CatalogueScreen = ({ navigation, favoris, setFavoris }) => {
 	const [erreur, setErreur] = useState(null);
 	const [recherche, setRecherche] = useState("");
 
@@ -12,7 +12,8 @@ const CatalogueScreen = ({ navigation, isLogin, favoris, setFavoris }) => {
 	const [descriptionVisible, setDescriptionVisible] = useState({});
 
 	// Accès au context
-	const { articles, setArticles, panier, setPanier } = useContext(UserContext);
+	const { user, articles, setArticles, panier, setPanier } = useContext(UserContext);
+	const isLogin = !!user; // ← Récupéré du contexte
 
 	//Fonction qui sert à ajouter des articles au panier
 	const ajouterAuPanier = useCallback(
@@ -53,7 +54,7 @@ const CatalogueScreen = ({ navigation, isLogin, favoris, setFavoris }) => {
 	useEffect(() => {
 		const chargerArticles = async () => {
 			try {
-				const res = await fetch("http://**********:3000/api/articles");
+				const res = await fetch("http://*******:3000/api/articles");
 
 				if (!res.ok) {
 					//throw = lancer une erreur (interruption immédiate).
@@ -73,7 +74,7 @@ const CatalogueScreen = ({ navigation, isLogin, favoris, setFavoris }) => {
 	}, [setArticles]);
 
 	// Fonction pour la barre de recherche
-    const articlesFiltres = useMemo(() => {
+	const articlesFiltres = useMemo(() => {
 		return articles.filter((a) => a.name.toLowerCase().includes(recherche.toLowerCase()));
 	}, [articles, recherche]);
 

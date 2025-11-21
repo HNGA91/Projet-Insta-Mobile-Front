@@ -7,7 +7,7 @@ import { InitDB } from "../Database/InitDB";
 import { VerifUser } from "../Database/Task"
 import { UserContext } from "../Context/Context";
 
-const ConnexionFormScreen = ({ setIsLogin, isLogin }) => {
+const ConnexionFormScreen = () => {
     
 	const [formData, setFormData] = useState({ email: "", password: "" });
 	const [error, setError] = useState("");
@@ -15,7 +15,7 @@ const ConnexionFormScreen = ({ setIsLogin, isLogin }) => {
 	const [errorPassword, setErrorPassword] = useState("");
 
     // Accès au context
-    const { setUser } = useContext(UserContext);
+    const { setUser, login } = useContext(UserContext);
 
     // Pour vérifier l'état de validation du formulaire
 	const [isValid, setIsValid] = useState(false);
@@ -139,14 +139,12 @@ const ConnexionFormScreen = ({ setIsLogin, isLogin }) => {
 				Alert.alert("✅ Connexion réussie", "Bienvenue!");
 
 				// Mettre à jour le contexte utilisateur
-				setUser({
+				login({
 					nom: user.Nom,
 					prenom: user.Prenom,
 					email: user.Email,
 				});
 
-				// Marquer comme connecté et navigation vers "Catalogue"
-				setIsLogin(true);
 				navigation.navigate("Catalogue");
 			} else {
 				Alert.alert("❌ Erreur", "Email ou mot de passe incorrect.");
