@@ -1,24 +1,27 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { View, StyleSheet, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
-import styles from "../styles/Styles";
+import { ActivityIndicator } from "react-native"; 
+import styles from "../Styles/Styles";
 import { Alert } from "react-native";
 import { InitDB } from "../Database/InitDB";
-import { VerifUser } from "../Database/Task"
-import { UserContext } from "../Context/Context";
+import { VerifUser } from "../Database/Task";
+import { UserContext } from "../Context/UserContext";
 
 const ConnexionFormScreen = () => {
-    
 	const [formData, setFormData] = useState({ email: "", password: "" });
 	const [error, setError] = useState("");
 	const [errorEmail, setErrorEmail] = useState("");
 	const [errorPassword, setErrorPassword] = useState("");
 
-    // Accès au context
-    const { setUser, login } = useContext(UserContext);
-
-    // Pour vérifier l'état de validation du formulaire
+	// Pour vérifier l'état de validation du formulaire
 	const [isValid, setIsValid] = useState(false);
+
+	// Pour vérifier l'état de chargement du formulaire
+	const [loading, setLoading] = useState(false);
+
+	// Accès au context
+	const { login } = useContext(UserContext);
 
 	//Ref pour déplacer le focus entre les inputs
 	const emailInputRef = useRef(null);
@@ -26,17 +29,17 @@ const ConnexionFormScreen = () => {
 
 	const navigation = useNavigation();
 
-    // Initialise la base de donnée
-    useEffect(() => {
-            const setupDB = async () => {
-                try {
-                    await InitDB();
-                } catch (error) {
-                    console.error("Erreur lors de m'initialisation de la base :", error);
-                }
-            };
-            setupDB();
-        }, []);
+	// Initialise la base de donnée
+	useEffect(() => {
+		const setupDB = async () => {
+			try {
+				await InitDB();
+			} catch (error) {
+				console.error("❌ Erreur lors de m'initialisation de la base :", error);
+			}
+		};
+		setupDB();
+	}, []);
 
 	// Focus auto sur l'email
 	useEffect(() => {
@@ -91,6 +94,9 @@ const ConnexionFormScreen = () => {
 	};
 
 	const handleSubmit = async () => {
+		// Ajout de loading afin d'empêcher la double soumission
+		if (loading) return;
+
 		let isValid = true;
 
 		// VALIDATION COTE CLIENT
@@ -126,9 +132,12 @@ const ConnexionFormScreen = () => {
 			return;
 		}
 
+		// Début du loading
+		setLoading(true);
+
 		// VALIDATION COTE BASE DE DONNEE
 
-        // Si la validation côté client est passée, on vérifie en base de données
+		// Si la validation côté client est passée, on vérifie en base de données
 		try {
 			console.log("✅ Validation côté client réussie, vérification en base de données...");
 
@@ -138,7 +147,7 @@ const ConnexionFormScreen = () => {
 				console.log("✅ Utilisateur authentifié:", user);
 				Alert.alert("✅ Connexion réussie", "Bienvenue!");
 
-				// Mettre à jour le contexte utilisateur
+				// Met à jour le contexte utilisateur et navigation vers "Catalogue"
 				login({
 					nom: user.Nom,
 					prenom: user.Prenom,
@@ -151,8 +160,11 @@ const ConnexionFormScreen = () => {
 				console.log("❌ Échec de l'authentification, Email ou mot de passe incorrect.");
 			}
 		} catch (error) {
-			console.error("Erreur lors de la vérification :", error);
+			console.error("❌ Erreur lors de la vérification :", error);
 			Alert.alert("❌ Erreur", "Une erreur est survenue lors de la connexion.");
+		} finally {
+			// Fin du loading (même en cas d'erreur)
+			setLoading(false);
 		}
 	};
 
@@ -169,6 +181,7 @@ const ConnexionFormScreen = () => {
 				keyboardShouldPersistTaps="handled"
 			>
 				<Text style={styles.titre}>Se connecter</Text>
+
 				<View>
 					<Text style={styles.label}>Email:</Text>
 					<TextInput
@@ -184,6 +197,7 @@ const ConnexionFormScreen = () => {
 					/>
 					{errorEmail ? <Text style={styles.texteErreur}>{errorEmail}</Text> : null}
 				</View>
+
 				<View>
 					<Text style={styles.label}>Mot de passe:</Text>
 					<TextInput
@@ -198,9 +212,23 @@ const ConnexionFormScreen = () => {
 					/>
 					{errorPassword ? <Text style={styles.texteErreur}>{errorPassword}</Text> : null}
 				</View>
-				<TouchableOpacity style={[styles.bouton, !isValid && { backgroundColor: "#e74c3c" }]} onPress={handleSubmit} disabled={!isValid}>
-					<Text style={styles.texteBouton}>{isValid ? "Se connecter" : "Champs invalides"}</Text>
-				</TouchableOpacity>
+
+				{/* Affichage du loading */}
+				{loading ? (
+					<View style={{ alignItems: "center", marginTop: 20 }}>
+						<ActivityIndicator size="large" color="#3498db" />
+						<Text style={{ marginTop: 10 }}>Connexion en cours...</Text>
+					</View>
+				) : (
+					<TouchableOpacity
+						style={[styles.bouton, !isValid && { backgroundColor: "#e74c3c" }]}
+						onPress={handleSubmit}
+						// Désactivé si loading ou non valide
+						disabled={!isValid || loading}
+					>
+						<Text style={styles.texteBouton}>{isValid ? "Se connecter" : "Champs invalides"}</Text>
+					</TouchableOpacity>
+				)}
 			</ScrollView>
 		</KeyboardAvoidingView>
 	);

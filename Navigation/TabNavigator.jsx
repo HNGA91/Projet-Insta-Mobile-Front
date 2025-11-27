@@ -1,24 +1,21 @@
+import React, { useContext, useMemo } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import React, { useState, useContext } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { UserContext } from "../Context/Context";
-import CatalogueScreen from "../Screens/CatalogueScreen";
-import FavorisScreen from "../Screens/FavorisScreen";
+import { UserContext } from "../Context/UserContext";
 import PanierScreen from "../Screens/PanierScreen";
-import ProfilScreen from "../Screens/ProfilScreen";
 import CatalogueWithDrawer from "./CatalogueWithDrawer";
 import ProfilWithDrawer from "./ProfilWithDrawer";
 import InscriptionFormScreen from "../Screens/InscriptionFormScreen";
 import ConnexionFormScreen from "../Screens/ConnexionFormScreen";
+import FavorisScreen from "../Screens/FavorisScreen";
 
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
 	const { user } = useContext(UserContext);
-	const [favoris, setFavoris] = useState([]);
 
 	// Signifie que isLogin sera true si user existe
-	const isLogin = !!user;
+	const isLogin = useMemo(() => !!user, [user]);
 
 	return (
 		<Tab.Navigator
@@ -46,20 +43,10 @@ const TabNavigator = () => {
 			})}
 		>
 			{/* Catalogue - Écrans publics - AVEC Drawer */}
-			<Tab.Screen
-				name="Catalogue"
-				options={{ headerShown: false }}
-				children={(props) => <CatalogueWithDrawer {...props} favoris={favoris} setFavoris={setFavoris} />}
-			/>
+			<Tab.Screen name="Catalogue" options={{ headerShown: false }} children={(props) => <CatalogueWithDrawer {...props} />} />
 
 			{/* Favoris - Écrans protégés (seulement si connecté) - SANS Drawer (écran direct) */}
-			{isLogin && (
-				<Tab.Screen
-					name="Favoris"
-					options={{ headerShown: false }}
-					children={(props) => <FavorisScreen {...props} favoris={favoris} setFavoris={setFavoris} />}
-				/>
-			)}
+			{isLogin && <Tab.Screen name="Favoris" options={{ headerShown: false }} children={(props) => <FavorisScreen {...props} />} />}
 
 			{/* Inscription/Connexion - Écrans publics - Seulement si DÉCONNECTÉ  */}
 			{!isLogin && (

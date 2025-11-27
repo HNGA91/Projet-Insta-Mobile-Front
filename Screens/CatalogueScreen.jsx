@@ -1,60 +1,42 @@
+import React, { useState, useEffect, useContext, useCallback, useMemo, memo } from "react";
+import { ActivityIndicator } from "react-native"; 
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Text, FlatList, View, TextInput, Image, Pressable, TouchableOpacity } from "react-native";
-import styles from "../styles/Styles";
-import { useState, useEffect, useContext, useCallback, useMemo } from "react";
-import { UserContext } from "../Context/Context";
+import { Text, FlatList, View, TextInput, TouchableOpacity } from "react-native";
+import styles from "../Styles/Styles";
+import { ArticleContext } from "../Context/ArticleContext";
+import { PanierContext } from "../Context/PanierContext";
+import { UserContext } from "../Context/UserContext";
+import { useCalculsPanier } from "../Hooks/useCalculsPanier";
+import { FavorisContext } from "../Context/FavorisContext";
+import ArticlesItem from "../Components/FlatList/ArticlesItem.jsx";
 
-const CatalogueScreen = ({ navigation, favoris, setFavoris }) => {
+const CatalogueScreen = memo(({ navigation }) => {
 	const [erreur, setErreur] = useState(null);
 	const [recherche, setRecherche] = useState("");
 
-	// Etat pour les descriptions individuelles : { idArticle: boolean }
+	// Etat qui stocke la visibilité de chaque article pour les descriptions individuelles : { idArticle: boolean }
 	const [descriptionVisible, setDescriptionVisible] = useState({});
 
+	// Pour vérifier l'état de chargement de la liste des articles
+	const [loading, setLoading] = useState(false);
+
 	// Accès au context
-	const { user, articles, setArticles, panier, setPanier } = useContext(UserContext);
+	const { articles, setArticles } = useContext(ArticleContext);
+	const { favoris, toggleFavoris } = useContext(FavorisContext);
+	const { ajouterAuPanier } = useContext(PanierContext);
+	const { user } = useContext(UserContext);
 	const isLogin = !!user; // ← Récupéré du contexte
 
-	//Fonction qui sert à ajouter des articles au panier
-	const ajouterAuPanier = useCallback(
-		(article) => {
-			setPanier((prev) => {
-				// 1. Vérifier si l'article existe déjà
-				const existe = prev.find((item) => item._id === article._id);
-				if (existe) {
-					// 2. Si OUI : augmenter la quantité de 1
-					return prev.map((item) => (item._id === article._id ? { ...item, quantite: (item.quantite || 1) + 1 } : item));
-				} else {
-					// 3. Si NON : ajouter nouvel article avec quantité 1
-					return [...prev, { ...article, quantite: 1 }];
-				}
-			});
-		},
-		[setPanier]
-	);
-
-	//Fonction qui sert à ajouter des articles à la liste des favoris
-	const ajouterAuFavoris = useCallback(
-		(produit) => {
-			setFavoris((prev) => {
-				// 1. Vérifier si l'article existe déjà
-				const existe = prev.find((item) => item._id === produit._id);
-				if (existe) {
-					// 2. Si OUI : augmenter la quantité de 1
-					return prev.map((item) => (item._id === produit._id ? { ...item, quantite: (item.quantite || 1) + 1 } : item));
-				} else {
-					// 3. Si NON : ajouter nouvel article avec quantité 1
-					return [...prev, { ...produit, quantite: 1 }];
-				}
-			});
-		},
-		[setPanier]
-	);
+	// Accès au hook personnalisé
+	const { totalPanier, nombreArticlesPanier } = useCalculsPanier();
 
 	useEffect(() => {
 		const chargerArticles = async () => {
 			try {
-				const res = await fetch("http://*******:3000/api/articles");
+				// Début du loading
+				setLoading(true);
+
+				const res = await fetch("http://192.168.56.1:3000/api/articles");
 
 				if (!res.ok) {
 					//throw = lancer une erreur (interruption immédiate).
@@ -67,7 +49,8 @@ const CatalogueScreen = ({ navigation, favoris, setFavoris }) => {
 			} catch (err) {
 				setErreur(err.message); // capture et affichage de l’erreur
 			} finally {
-				// setLoading(false); // fin du chargement dans tous les cas
+				// Fin du loading (même en cas d'erreur)
+				setLoading(false);
 			}
 		};
 		chargerArticles();
@@ -82,12 +65,72 @@ const CatalogueScreen = ({ navigation, favoris, setFavoris }) => {
 	const toggleDescription = useCallback((id) => {
 		setDescriptionVisible((prev) => ({
 			...prev,
+			// Inverse true/false pour cet ID spécifique
 			[id]: !prev[id],
 		}));
 	}, []);
 
-	// if (loading) return <ActivityIndicator style={styles.loader} />;
-	if (erreur) return <Text style={styles.erreur}>Erreur : {erreur}</Text>;
+	// OPTIMISATION : Création d'un Set des IDs des favoris
+	const idsFavoris = useMemo(
+		() =>
+			// Convertit le tableau en Set (collection d'éléments uniques)
+			new Set(
+				// Transforme le tableau d'objets favoris en tableau simple d'IDs
+				favoris.map((f) => f._id)
+			),
+		[favoris]
+	);
+
+	// OPTIMISATION : Fonction renderItem de la flatlist mémorisée
+	const renderItem = useCallback(
+		({ item }) => {
+			// Vérifie l'état du bouton toggleDescription de l'article en question, grace à son id passé en paramètre
+			const isVisible = descriptionVisible[item._id] || false;
+			// OPTIMISATION : Recherche rapide avec Set.has()
+			const estFavori = idsFavoris.has(item._id);
+
+			return (
+				<ArticlesItem
+					item={item}
+					isVisible={isVisible}
+					estFavori={estFavori}
+					onToggleDescription={toggleDescription}
+					onToggleFavoris={() => toggleFavoris(item, user)}
+					onAddToCart={ajouterAuPanier}
+					isLogin={isLogin}
+				/>
+			);
+		},
+		[descriptionVisible, idsFavoris, toggleDescription, toggleFavoris, ajouterAuPanier, isLogin]
+	);
+
+	// Affiche un écran de chargement en cas de chargements
+	if (loading) {
+		return (
+			<View style={styles.loaderContainer}>
+				<ActivityIndicator size="large" color="#3498db" />
+				<Text style={{ marginTop: 10 }}>Chargement des articles...</Text>
+			</View>
+		);
+	}
+
+	// Affiche un écran d'érreur en cas d'érreurs
+	if (erreur) {
+		return (
+			<View
+				style={{
+					flex: 1,
+					justifyContent: "center",
+					alignItems: "center",
+					backgroundColor: "#fff",
+				}}
+			>
+				<Text style={styles.texteErreur}>❌ Erreur : {erreur}</Text>
+			</View>
+		);
+	}
+
+	// Le reste du code NE S'EXÉCUTE PAS si on est en loading ou erreur
 
 	return (
 		<View style={{ flex: 1 }}>
@@ -95,8 +138,7 @@ const CatalogueScreen = ({ navigation, favoris, setFavoris }) => {
 				<Text style={styles.title}>Liste des produits</Text>
 				<TouchableOpacity style={styles.cartBadge} onPress={() => navigation.navigate("Panier")}>
 					<Text style={styles.cartText}>
-						🛒 {panier.reduce((s, i) => s + (i.quantite || 1), 0)} |{" "}
-						{panier.length > 0 ? panier.reduce((acc, i) => acc + i.prix * (i.quantite || 1), 0).toFixed(2) : 0} €
+						🛒 {nombreArticlesPanier} | {totalPanier.toFixed(2)} €
 					</Text>
 				</TouchableOpacity>
 			</View>
@@ -117,92 +159,17 @@ const CatalogueScreen = ({ navigation, favoris, setFavoris }) => {
 					}}
 				/>
 			</View>
+
 			<FlatList
 				data={articlesFiltres}
 				keyExtractor={(item) => item._id}
-				renderItem={({ item }) => {
-					const isVisible = descriptionVisible[item._id] || false;
-					return (
-						<View>
-							<View style={[styles.itemContainer, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
-								<Image source={{ uri: item.image }} style={styles.image} />
-								<View style={styles.info}>
-									<Text style={styles.nom}>{item.name}</Text>
-									<Text style={styles.prix}>{item.prix}€</Text>
-								</View>
-								<View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
-									<View>
-										<Pressable onPress={() => ajouterAuPanier(item)}>
-											{({ pressed }) => (
-												<Text
-													style={{
-														backgroundColor: "#1c5be4ff",
-														padding: 10,
-														borderRadius: 8,
-														color: "white",
-														width: 130,
-														textAlign: "center",
-													}}
-												>
-													Ajouter au panier
-												</Text>
-											)}
-										</Pressable>
-										{isLogin && (
-											<Pressable onPress={() => ajouterAuFavoris(item)}>
-												{({ pressed }) => (
-													<Text
-														style={{
-															backgroundColor: "#f3c808ff",
-															padding: 10,
-															borderRadius: 8,
-															color: "black",
-															width: 130,
-															marginTop: 10,
-															textAlign: "center",
-														}}
-													>
-														Favoris
-													</Text>
-												)}
-											</Pressable>
-										)}
-									</View>
-								</View>
-							</View>
-							<Pressable onPress={() => toggleDescription(item._id)}>
-								{({ pressed }) => (
-									<Text
-										style={{
-											backgroundColor: "#1c5be4ff",
-											padding: 10,
-											color: "white",
-											flex: 1,
-											textAlign: "center",
-										}}
-									>
-										{isVisible ? "Masquer les détails" : "Afficher les détails"}
-									</Text>
-								)}
-							</Pressable>
-							{isVisible && (
-								<View>
-									<Text>Description technique :</Text>
-									<Text>
-										- Matériau: Coton 100%{"\n"}- Dimensions: 30x40 cm{"\n"}- Poids: 250g{"\n"}- Couleur: Bleu marine{"\n"}-
-										Entretien: Lavable en machine
-									</Text>
-								</View>
-							)}
-						</View>
-					);
-				}}
+				renderItem={renderItem}
 				ListEmptyComponent={
 					recherche.length > 0 ? <Text>Aucun produit ne correspond à "{recherche}".</Text> : <Text>Aucun produit disponible.</Text>
 				}
 			/>
 		</View>
 	);
-};
+});
 
 export default CatalogueScreen;

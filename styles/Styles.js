@@ -163,6 +163,13 @@ export default StyleSheet.create({
 		backgroundColor: "#fff",
 	},
 
+	loaderContainer: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: "#fff",
+	},
+
 	title: {
 		fontSize: 24,
 		fontWeight: "bold",

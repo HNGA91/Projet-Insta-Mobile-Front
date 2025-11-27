@@ -1,16 +1,11 @@
-import { createDrawerNavigator } from "@react-navigation/drawer";
 import React from "react";
+import { createDrawerNavigator } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
 import CatalogueScreen from "../Screens/CatalogueScreen";
-import { useContext } from "react";
-import { UserContext } from "../Context/Context";
 
 const Drawer = createDrawerNavigator();
 
-const CatalogueWithDrawer = ({ route, favoris, setFavoris }) => {
-	const { user } = useContext(UserContext);
-	const isLogin = !!user;
-
+const CatalogueWithDrawer = ({ route }) => {
 	return (
 		<Drawer.Navigator
 			screenOptions={{
@@ -24,7 +19,7 @@ const CatalogueWithDrawer = ({ route, favoris, setFavoris }) => {
 			<Drawer.Screen
 				name="CataloguePrincipal"
 				options={{ title: "Accueil", drawerIcon: ({ color, size }) => <Ionicons name="bag-handle-sharp" size={size} color={color} /> }}
-				children={(props) => <CatalogueScreen {...props} favoris={favoris} setFavoris={setFavoris} />}
+				children={(props) => <CatalogueScreen {...props} />}
 			/>
 		</Drawer.Navigator>
 	);

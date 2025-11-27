@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState, useContext } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { View, StyleSheet, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
-import styles from "../styles/Styles";
+import { ActivityIndicator } from "react-native"; 
+import styles from "../Styles/Styles";
 import { Alert } from "react-native";
 import { InitDB } from "../Database/InitDB";
 import { InsertUser } from "../Database/Task";
-import { UserContext } from "../Context/Context";
+import { UserContext } from "../Context/UserContext";
 
 const InscriptionFormScreen = () => {
 	const [formData, setFormData] = useState({ nom: "", prenom: "", email: "", tel: "", password: "", confirmPassword: "" });
@@ -16,10 +17,17 @@ const InscriptionFormScreen = () => {
 	const [errorTel, setErrorTel] = useState("");
 	const [errorPassword, setErrorPassword] = useState("");
 	const [errorConfirmPassword, setErrorConfirmPassword] = useState("");
+
+	// Pour vérifier l'état de validation du formulaire
 	const [isValid, setIsValid] = useState(false);
 
+	// Pour vérifier l'état de chargement du formulaire
+	const [loading, setLoading] = useState(false);
+
+	const navigation = useNavigation();
+
 	// Accès au context
-	const { setUser } = useContext(UserContext);
+	const { login } = useContext(UserContext);
 
 	// Ref pour déplacer le focus entre les inputs
 	const nomInputRef = useRef(null);
@@ -28,8 +36,6 @@ const InscriptionFormScreen = () => {
 	const telInputRef = useRef(null);
 	const passwordInputRef = useRef(null);
 	const confirmPasswordInputRef = useRef(null);
-
-	const navigation = useNavigation();
 
 	useEffect(() => {
 		if (nomInputRef.current) {
@@ -43,13 +49,14 @@ const InscriptionFormScreen = () => {
 			try {
 				await InitDB();
 			} catch (error) {
-				console.error("Erreur lors de m'initialisation de la base :", error);
+				console.error("❌ Erreur lors de m'initialisation de la base :", error);
 			}
 		};
 		setupDB();
 	}, []);
 
 	// UseEffect qui surveille la validité du formulaire pour l'activation du bouton submit
+	// Si la moindre erreur s'active, le formulaire ne peut pas etre envoyé
 	useEffect(() => {
 		const formIsValid =
 			formData.nom.trim() !== "" &&
@@ -69,6 +76,7 @@ const InscriptionFormScreen = () => {
 		setIsValid(formIsValid);
 	}, [formData, error, errorNom, errorPrenom, errorEmail, errorTel, errorPassword, errorConfirmPassword]);
 
+	// Vérifie que le mot de passe et sa confirmation sont bien identique
 	useEffect(() => {
 		if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
 			setError("⚠️ Les mots de passe ne correspondent pas");
@@ -185,6 +193,9 @@ const InscriptionFormScreen = () => {
 	};
 
 	const handleSubmit = async () => {
+		// Ajout de loading afin d'empêcher la double soumission
+		if (loading) return;
+
 		let isValid = true;
 
 		// VALIDATION COTE CLIENT
@@ -204,7 +215,7 @@ const InscriptionFormScreen = () => {
 			setErrorPrenom('⚠️ Le champ "Prenom" ne peut pas être vide');
 			isValid = false;
 		} else if (!nameRegex.test(formData.prenom)) {
-			setErrorNom("⚠️ Le prenom ne peut contenir que des lettres");
+			setErrorPrenom("⚠️ Le prenom ne peut contenir que des lettres");
 		} else {
 			setErrorPrenom("");
 		}
@@ -244,6 +255,7 @@ const InscriptionFormScreen = () => {
 		} else {
 			setErrorPassword("");
 		}
+
 		// Confirmation du mot de passe
 		if (formData.confirmPassword.trim() === "") {
 			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" ne peut pas être vide');
@@ -263,6 +275,9 @@ const InscriptionFormScreen = () => {
 			console.log("❌ Le formulaire contient des erreurs. Envoi bloqué");
 			return;
 		}
+
+		// Début du loading
+		setLoading(true);
 
 		// VALIDATION COTE BASE DE DONNEE
 
@@ -291,8 +306,17 @@ const InscriptionFormScreen = () => {
 			});
 			navigation.navigate("Catalogue");
 		} catch (error) {
-			console.error("Erreur lors de l'insertion :", error);
-			Alert.alert("❌ Erreur", "Impossible d'insérer l'utilisateur.");
+        console.error("❌ Erreur lors de l'insertion :", error);
+
+        let messageErreur = "Une erreur est survenue lors de l'inscription.";
+        if (error.message.includes("email est déjà utilisé")) {
+            messageErreur = "Cet email est déjà utilisé";
+        }
+
+        Alert.alert("❌ Erreur", messageErreur);
+        } finally {
+			// Fin du loading (même en cas d'erreur)
+			setLoading(false);
 		}
 	};
 
@@ -309,6 +333,7 @@ const InscriptionFormScreen = () => {
 				keyboardShouldPersistTaps="handled"
 			>
 				<Text style={styles.titre}>Créer un compte</Text>
+
 				<View>
 					<Text style={styles.label}>Nom:</Text>
 					<TextInput
@@ -324,6 +349,7 @@ const InscriptionFormScreen = () => {
 					/>
 					{errorNom ? <Text style={styles.texteErreur}>{errorNom}</Text> : null}
 				</View>
+
 				<View>
 					<Text style={styles.label}>Prenom:</Text>
 					<TextInput
@@ -339,6 +365,7 @@ const InscriptionFormScreen = () => {
 					/>
 					{errorPrenom ? <Text style={styles.texteErreur}>{errorPrenom}</Text> : null}
 				</View>
+
 				<View>
 					<Text style={styles.label}>Email:</Text>
 					<TextInput
@@ -354,6 +381,7 @@ const InscriptionFormScreen = () => {
 					/>
 					{errorEmail ? <Text style={styles.texteErreur}>{errorEmail}</Text> : null}
 				</View>
+
 				<View>
 					<Text style={styles.label}>Numéro de téléphone:</Text>
 					<TextInput
@@ -368,6 +396,7 @@ const InscriptionFormScreen = () => {
 					/>
 					{errorTel ? <Text style={styles.texteErreur}>{errorTel}</Text> : null}
 				</View>
+
 				<View>
 					<Text style={styles.label}>Mot de passe:</Text>
 					<TextInput
@@ -382,6 +411,7 @@ const InscriptionFormScreen = () => {
 					/>
 					{errorPassword ? <Text style={styles.texteErreur}>{errorPassword}</Text> : null}
 				</View>
+
 				<View>
 					<Text style={styles.label}>Confirmation du mot de passe:</Text>
 					<TextInput
@@ -395,9 +425,23 @@ const InscriptionFormScreen = () => {
 					/>
 					{errorConfirmPassword ? <Text style={styles.texteErreur}>{errorConfirmPassword}</Text> : null}
 				</View>
-				<TouchableOpacity style={[styles.bouton, !isValid && { backgroundColor: "#e74c3c" }]} onPress={handleSubmit} disabled={!isValid}>
-					<Text style={styles.texteBouton}>{isValid ? "S'inscrire" : "Champs invalides"}</Text>
-				</TouchableOpacity>
+
+				{/* Affichage du loading */}
+				{loading ? (
+					<View style={{ alignItems: "center", marginTop: 20 }}>
+						<ActivityIndicator size="large" color="#3498db" />
+						<Text style={{ marginTop: 10 }}>Inscription en cours...</Text>
+					</View>
+				) : (
+					<TouchableOpacity
+						style={[styles.bouton, !isValid && { backgroundColor: "#e74c3c" }]}
+						onPress={handleSubmit}
+						// Désactivé si loading ou non valide
+						disabled={!isValid || loading}
+					>
+						<Text style={styles.texteBouton}>{isValid ? "S'inscrire" : "Champs invalides"}</Text>
+					</TouchableOpacity>
+				)}
 			</ScrollView>
 		</KeyboardAvoidingView>
 	);

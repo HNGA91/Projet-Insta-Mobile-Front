@@ -1,76 +1,15 @@
+import React, { useContext, memo } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image, Alert } from "react-native";
-import styles from "../styles/Styles";
-import { useContext, useCallback, useMemo } from "react";
-import { UserContext } from "../Context/Context";
+import styles from "../Styles/Styles";
+import { PanierContext } from "../Context/PanierContext";
+import { useCalculsPanier } from "../Hooks/useCalculsPanier";
 
-const PanierScreen = () => {
+const PanierScreen = memo(() => {
 	// Accès au context
-	const { panier, setPanier } = useContext(UserContext);
+	const { panier, ajouterAuPanier, supprimerDuPanier, viderLePanier } = useContext(PanierContext);
 
-	// Ajouter un article (ou augmenter sa quantité)
-	const ajouterAuPanier = useCallback(
-		(article) => {
-			setPanier((prev) => {
-				// 1. Vérifier si l'article existe déjà
-				const existe = prev.find((item) => item._id === article._id);
-				if (existe) {
-					// 2. Si OUI : augmenter la quantité de 1
-					return prev.map((item) => (item._id === article._id ? { ...item, quantite: (item.quantite || 1) + 1 } : item));
-				} else {
-					// 3. Si NON : ajouter nouvel article avec quantité 1
-					return [...prev, { ...article, quantite: 1 }];
-				}
-			});
-		},
-		[setPanier]
-	);
-
-	// Supprimer un article (ou diminuer sa quantité)
-	const supprimerDuPanier = (id) => {
-		setPanier((prev) => {
-			// 1. Diminuer la quantité de 1 pour l'article ciblé
-			return (
-				prev
-					.map((item) => (item._id === id ? { ...item, quantite: (item.quantite || 1) - 1 } : item))
-					// 2. Filtrer pour garder seulement les articles avec quantite > 0
-					.filter((item) => (item.quantite || 0) > 0)
-			);
-		});
-	};
-
-	// Vider entièrement le panier avec confirmation avant
-	const viderLePanier = () => {
-		Alert.alert("Confirmation", "Voulez-vous vraiment vider le panier ?", [
-			{ text: "Annuler", style: "cancel" },
-			{
-				text: "Oui, je confirme",
-				style: "destructive",
-				onPress: () => setPanier([]),
-			},
-		]);
-	};
-
-	// Calculer le total du panier
-	const totalPanier =
-		// Étape 1: useMemo reçoit la fonction callback
-		useMemo(
-			// Étape 2: Cette fonction entière est exécutée
-			() => {
-				// Étape 3: reduce() est appelé sur le panier
-				// reduce() transforme un tableau en une seule valeur (le total) en "accumulant" progressivement le résultat à travers chaque élément du tableau.
-				return panier.reduce(
-					// Étape 4: Cette fonction est appelée pour CHAQUE item du panier
-					(acc, item) =>
-						// Initialisation : acc = 0
-						acc +
-						// On multiplie l'article par la quantité
-						item.prix * (item.quantite || 1),
-					0
-				);
-			},
-			// Étape 5: useMemo mémorise le résultat
-			[panier]
-		);
+	// Accès au hook personnalisé
+	const { totalPanier } = useCalculsPanier();
 
 	return (
 		<View style={styles.container}>
@@ -136,6 +75,6 @@ const PanierScreen = () => {
 			)}
 		</View>
 	);
-};
+});
 
 export default PanierScreen;

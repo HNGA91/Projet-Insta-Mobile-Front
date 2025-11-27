@@ -1,16 +1,30 @@
+import React, { useContext } from "react";
 import { View, Text, Pressable, KeyboardAvoidingView, ScrollView, TouchableOpacity, Platform } from "react-native";
-import styles from "../styles/Styles";
-import { UserContext } from "../Context/Context";
-import { useContext } from "react";
+import styles from "../Styles/Styles";
+import { PanierContext } from "../Context/PanierContext";
+import { UserContext } from "../Context/UserContext";
+import { useCalculsPanier } from "../Hooks/useCalculsPanier";
 
-const ProfilScreen = ({ navigation, favoris }) => {
+const ProfilScreen = ({ navigation }) => {
+	const { panier, setPanier } = useContext(PanierContext);
+	const { user, setUser, logout } = useContext(UserContext);
 
-    const { user, setUser, panier, logout } = useContext(UserContext);
+	// Accès au hook personnalisé
+	const { totalPanier, nombreArticlesPanier } = useCalculsPanier();
 
 	const handleDeconnexion = () => {
-		logout(); // Appel de la fonction du contexte
+		logout(); // Appel de la fonction du contexte UserContext
+		setPanier([]); // Appel de la fonction du contexte PanierContext et vide le panier
 		navigation.navigate("Catalogue"); // Retour automatique à l'accueil
 	};
+
+	if (!user) {
+            return (
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <Text style={{ fontSize: 18 }}>⛔ Veuillez vous connecter pour accéder à votre profil.</Text>
+                </View>
+            ); 
+        }
 
 	return (
 		<View style={{ flex: 1 }}>
@@ -19,8 +33,7 @@ const ProfilScreen = ({ navigation, favoris }) => {
 				<View>
 					<TouchableOpacity style={styles.cartBadge} onPress={() => navigation.navigate("Panier")}>
 						<Text style={styles.cartText}>
-							🛒 {panier.reduce((s, i) => s + (i.quantite || 1), 0)} |{" "}
-							{panier.length > 0 ? panier.reduce((acc, i) => acc + i.prix * (i.quantite || 1), 0).toFixed(2) : 0} €
+							🛒 {nombreArticlesPanier} | {totalPanier.toFixed(2)} €
 						</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={styles.disconnectBadge} onPress={handleDeconnexion}>

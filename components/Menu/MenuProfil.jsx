@@ -1,6 +1,6 @@
 import React from "react";
 import { View, TouchableOpacity, Pressable, StyleSheet, Text, ScrollView } from "react-native";
-import styles from "../../styles/Styles";
+import styles from "../../Styles/Styles";
 
 const MenuProfil = ({ navigation, panier, setIsLogin }) => {
 	const handleDeconnexion = () => {

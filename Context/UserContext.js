@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import React, { createContext, useState } from "react";
 
 //Créer un context - une sorte de "zone mémoire partagée"
 export const UserContext = createContext();
@@ -6,8 +6,6 @@ export const UserContext = createContext();
 //Definir le fournisseur du context
 export const UserProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
-	const [articles, setArticles] = useState([]);
-	const [panier, setPanier] = useState([]);
 
 	// Fonction de connexion
 	const login = (userData) => {
@@ -17,7 +15,6 @@ export const UserProvider = ({ children }) => {
 	// Fonction de déconnexion
 	const logout = () => {
 		setUser(null);
-		setPanier([]);
 	};
 
 	return (
@@ -25,10 +22,6 @@ export const UserProvider = ({ children }) => {
 			value={{
 				user,
 				setUser,
-				articles,
-				setArticles,
-				panier,
-				setPanier,
 				login,
 				logout,
 			}}

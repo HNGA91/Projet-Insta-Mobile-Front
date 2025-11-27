@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Pressable, ScrollView, Text, TouchableOpacity } from "react-native";
-import styles from "../../styles/Styles";
+import styles from "../../Styles/Styles";
 
 const Menu = ({ navigation, panier, isLogin }) => {
 	return (

@@ -1,12 +1,12 @@
-import { createDrawerNavigator } from "@react-navigation/drawer";
 import React from "react";
+import { createDrawerNavigator } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
 import ProfilScreen from "../Screens/ProfilScreen";
 import FavorisScreen from "../Screens/FavorisScreen";
 
 const Drawer = createDrawerNavigator();
 
-const ProfilWithDrawer = ({ route, favoris, setFavoris }) => {
+const ProfilWithDrawer = ({ route }) => {
 	return (
 		<Drawer.Navigator
 			screenOptions={{
@@ -23,7 +23,7 @@ const ProfilWithDrawer = ({ route, favoris, setFavoris }) => {
 					title: "Mon compte",
 					drawerIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
 				}}
-				children={(props) => <ProfilScreen {...props} favoris={favoris} />}
+				children={(props) => <ProfilScreen {...props} />}
 			/>
 
 			{/* Options supplémentaires dans le Drawer du Profil */}
@@ -33,7 +33,7 @@ const ProfilWithDrawer = ({ route, favoris, setFavoris }) => {
 					title: "Mes favoris",
 					drawerIcon: ({ color, size }) => <Ionicons name="star" size={size} color={color} />,
 				}}
-				children={(props) => <FavorisScreen {...props} favoris={favoris} setFavoris={setFavoris} />}
+				children={(props) => <FavorisScreen {...props} />}
 			/>
 		</Drawer.Navigator>
 	);
