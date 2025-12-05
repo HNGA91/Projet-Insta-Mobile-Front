@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from "react";
+import React, { useContext } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { UserContext } from "../Context/UserContext";
@@ -12,10 +12,7 @@ import FavorisScreen from "../Screens/FavorisScreen";
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
-	const { user } = useContext(UserContext);
-
-	// Signifie que isLogin sera true si user existe
-	const isLogin = useMemo(() => !!user, [user]);
+	const { isLogin } = useContext(UserContext);
 
 	return (
 		<Tab.Navigator

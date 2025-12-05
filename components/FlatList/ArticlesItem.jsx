@@ -14,9 +14,9 @@ const ArticlesItem = memo(({ item, isVisible, estFavori, onToggleDescription, on
 					fadeDuration={300} // Transition plus fluide
 				/>
 
-				<View style={styles.info}>
-					<Text>{item.name}</Text>
-					<Text>{item.prix}€</Text>
+				<View style={[styles.info, { flex: 1, marginLeft: 12, marginRight: 12 }]}>
+					<Text style={{ fontSize: 15, flexWrap: "wrap", flexShrink: 1 }}>{item.name}</Text>
+					<Text style={{ fontSize: 15, marginTop: 4 }}>{item.prix}€</Text>
 				</View>
 
 				<View style={{ flexDirection: "row", alignItems: "center", gap: 15 }}>

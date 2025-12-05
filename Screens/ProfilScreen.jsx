@@ -1,30 +1,33 @@
 import React, { useContext } from "react";
 import { View, Text, Pressable, KeyboardAvoidingView, ScrollView, TouchableOpacity, Platform } from "react-native";
 import styles from "../Styles/Styles";
-import { PanierContext } from "../Context/PanierContext";
 import { UserContext } from "../Context/UserContext";
-import { useCalculsPanier } from "../Hooks/useCalculsPanier";
 
 const ProfilScreen = ({ navigation }) => {
-	const { panier, setPanier } = useContext(PanierContext);
-	const { user, setUser, logout } = useContext(UserContext);
-
-	// Accès au hook personnalisé
-	const { totalPanier, nombreArticlesPanier } = useCalculsPanier();
+	const { user, setUser, logout, panier, setPanier, totalPanier, nombreArticlesPanier, loading } = useContext(UserContext);
 
 	const handleDeconnexion = () => {
 		logout(); // Appel de la fonction du contexte UserContext
-		setPanier([]); // Appel de la fonction du contexte PanierContext et vide le panier
 		navigation.navigate("Catalogue"); // Retour automatique à l'accueil
 	};
 
 	if (!user) {
-            return (
-                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <Text style={{ fontSize: 18 }}>⛔ Veuillez vous connecter pour accéder à votre profil.</Text>
-                </View>
-            ); 
-        }
+		return (
+			<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+				<Text style={{ fontSize: 18 }}>⛔ Veuillez vous connecter pour accéder à votre profil.</Text>
+			</View>
+		);
+	}
+
+	// Affiche un écran de chargement en cas de chargements
+	if (loading) {
+		return (
+			<View style={styles.loaderContainer}>
+				<ActivityIndicator size="large" color="#1c5be4ff" />
+				<Text style={{ marginTop: 10 }}>Chargement de de votre profil...</Text>
+			</View>
+		);
+	}
 
 	return (
 		<View style={{ flex: 1 }}>

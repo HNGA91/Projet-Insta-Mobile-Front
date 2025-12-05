@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { View, StyleSheet, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
-import { ActivityIndicator } from "react-native"; 
+import { ActivityIndicator } from "react-native";
 import styles from "../Styles/Styles";
 import { Alert } from "react-native";
 import { UserContext } from "../Context/UserContext";
@@ -17,6 +17,14 @@ const InscriptionFormScreen = () => {
 	const [errorTel, setErrorTel] = useState("");
 	const [errorPassword, setErrorPassword] = useState("");
 	const [errorConfirmPassword, setErrorConfirmPassword] = useState("");
+
+	// Pour vérifier l'états des critères du mot de passe
+	const [passwordCriteria, setPasswordCriteria] = useState({
+		hasUppercase: false,
+		hasLowercase: false,
+		hasNumber: false,
+		hasSpecialChar: false,
+	});
 
 	// Pour vérifier l'état de validation du formulaire
 	const [isValid, setIsValid] = useState(false);
@@ -76,7 +84,21 @@ const InscriptionFormScreen = () => {
 	// Les différents Regex utiles aux vérifications
 	const nameRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/;
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-	const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
+	const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{12,}$/;
+
+	// Fonction pour vérifier tous les critères du mot de passe
+	const checkPasswordCriteria = (password) => {
+		const criteria = {
+			hasUppercase: /[A-Z]/.test(password),
+			hasLowercase: /[a-z]/.test(password),
+			hasNumber: /\d/.test(password),
+			hasSpecialChar: /[!@#$%^&*]/.test(password),
+		};
+		setPasswordCriteria(criteria);
+
+		// Vérifie si tous les critères sont remplis
+		return Object.values(criteria).every((criterion) => criterion === true);
+	};
 
 	//Vérification du champ "nom"
 	const handleNomChange = (champ, value) => {
@@ -151,12 +173,17 @@ const InscriptionFormScreen = () => {
 			[champ]: value,
 		}));
 
+		// Vérifie les critères
+		const allCriteriaMet = checkPasswordCriteria(value);
+
 		if (value.trim() === "") {
 			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas etre vide');
 		} else if (value.length < 12) {
 			setErrorPassword('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
 		} else if (!passwordRegex.test(value.trim())) {
 			setErrorPassword("⚠️ Le mot de passe est invalide");
+		} else if (!allCriteriaMet) {
+			setErrorPassword("⚠️ Le mot de passe ne respecte pas tous les critères");
 		} else {
 			setErrorPassword("");
 		}
@@ -230,6 +257,9 @@ const InscriptionFormScreen = () => {
 			setErrorTel("");
 		}
 
+		// Vérifie tous les critères du mot de passe
+		const passwordAllCriteriaMet = checkPasswordCriteria(formData.password);
+
 		// Mot de passe
 		if (formData.password.trim() === "") {
 			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas être vide');
@@ -239,6 +269,9 @@ const InscriptionFormScreen = () => {
 			isValid = false;
 		} else if (!passwordRegex.test(formData.password.trim())) {
 			setErrorPassword("⚠️ Le mot de passe est invalide");
+			isValid = false;
+		} else if (!passwordAllCriteriaMet) {
+			setErrorPassword("⚠️ Le mot de passe ne respecte pas tous les critères");
 			isValid = false;
 		} else {
 			setErrorPassword("");
@@ -286,36 +319,59 @@ const InscriptionFormScreen = () => {
 				}),
 			});
 
-		    const result = await response.json();
+			const result = await response.json();
 
-		    if (result.success) {
-			    // Stocker le token
-			    await AsyncStorage.setItem("authToken", result.token);
-			    await AsyncStorage.setItem("user", JSON.stringify(result.user));
+			if (result.success) {
+				// Stocker le token
+				await AsyncStorage.setItem("authToken", result.token);
+				await AsyncStorage.setItem("user", JSON.stringify(result.user));
 
-			    // Connexion automatique après inscription
-			    login(result.user, result.token);
+				// Connexion automatique après inscription
+				login(result.user, result.token);
 
-			    Alert.alert("✅ Inscription réussie", `Bienvenue, ${formData.prenom} !`);
-			navigation.navigate("Catalogue");
-            } else {
-			Alert.alert("❌ Erreur", result.message);
-            }
+				Alert.alert("✅ Inscription réussie", `Bienvenue, ${formData.prenom} !`);
+				navigation.navigate("Catalogue");
+			} else {
+				Alert.alert("❌ Erreur", result.message);
+			}
 		} catch (error) {
-        console.error("❌ Erreur lors de l'insertion :", error);
+			console.error("❌ Erreur lors de l'insertion :", error);
 
-        let messageErreur = "Une erreur est survenue lors de l'inscription.";
-        if (error.message.includes("email est déjà utilisé")) {
-            messageErreur = "Cet email est déjà utilisé";
-        }
+			let messageErreur = "Une erreur est survenue lors de l'inscription.";
+			if (error.message.includes("email est déjà utilisé")) {
+				messageErreur = "Cet email est déjà utilisé";
+			}
 
-        Alert.alert("❌ Erreur", messageErreur);
-        console.error("❌ Erreur", messageErreur);
-        } finally {
+			Alert.alert("❌ Erreur", messageErreur);
+			console.error("❌ Erreur", messageErreur);
+		} finally {
 			// Fin du loading (même en cas d'erreur)
 			setLoading(false);
 		}
 	};
+
+	// Composant pour afficher un critère du mot de passe
+	const PasswordCriterion = ({ label, isMet }) => (
+		<View style={{ flexDirection: "row", alignItems: "center", marginVertical: 2 }}>
+			<View
+				style={{
+					width: 12,
+					height: 12,
+					borderRadius: 6,
+					backgroundColor: isMet ? "#2ecc71" : "#e74c3c",
+					marginRight: 8,
+				}}
+			/>
+			<Text
+				style={{
+					color: isMet ? "#2ecc71" : "#e74c3c",
+					fontSize: 12,
+				}}
+			>
+				{label}
+			</Text>
+		</View>
+	);
 
 	return (
 		<KeyboardAvoidingView
@@ -407,6 +463,31 @@ const InscriptionFormScreen = () => {
 						onSubmitEditing={() => confirmPasswordInputRef.current && confirmPasswordInputRef.current.focus()}
 					/>
 					{errorPassword ? <Text style={styles.texteErreur}>{errorPassword}</Text> : null}
+
+					{/* Affichage des critères du mot de passe */}
+					{formData.password.length > 0 && (
+						<View style={{ marginTop: 10, marginBottom: 15, marginLeft: 10 }}>
+							<Text style={{ fontSize: 14, fontWeight: "bold", marginBottom: 5 }}>
+                                Critères du mot de passe:
+                            </Text>
+							<PasswordCriterion 
+                                label="Au moins une lettre majuscule" 
+                                isMet={passwordCriteria.hasUppercase} 
+                            />
+							<PasswordCriterion 
+                                label="Au moins une lettre minuscule" 
+                                isMet={passwordCriteria.hasLowercase} 
+                            />
+							<PasswordCriterion 
+                                label="Au moins un chiffre" 
+                                isMet={passwordCriteria.hasNumber} 
+                            />
+							<PasswordCriterion 
+                                label="Au moins un caractère spécial (!@#$%^&*)" 
+                                isMet={passwordCriteria.hasSpecialChar} 
+                            />
+						</View>
+					)}
 				</View>
 
 				<View>

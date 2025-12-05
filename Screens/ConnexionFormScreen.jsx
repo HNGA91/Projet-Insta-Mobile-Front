@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { View, StyleSheet, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
 import { ActivityIndicator } from "react-native";
 import styles from "../Styles/Styles";
 import { Alert } from "react-native";
@@ -144,7 +144,7 @@ const ConnexionFormScreen = () => {
 			const result = await response.json();
 
 			if (result.success) {
-				console.log("✅ Connexion JWT réussie:", result.user);
+				console.log("✅ Connexion JWT réussie");
 
 				// 1. Stocker le token
 				await AsyncStorage.setItem("authToken", result.token);

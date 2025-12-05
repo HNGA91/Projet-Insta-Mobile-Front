@@ -1,17 +1,29 @@
 import React, { useContext, memo } from "react";
-import { View, Text, FlatList, TouchableOpacity, Image, Alert } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 import styles from "../Styles/Styles";
-import { PanierContext } from "../Context/PanierContext";
-import { useCalculsPanier } from "../Hooks/useCalculsPanier";
 import { UserContext } from "../Context/UserContext";
 
 const PanierScreen = memo(() => {
 	// Accès au context
-	const { panier, ajouterAuPanier, supprimerDuPanier, viderLePanier } = useContext(PanierContext);
-    const { user } = useContext(UserContext);
+	const { user, panier, ajouterAuPanier, supprimerDuPanier, viderLePanier, totalPanier, loading } = useContext(UserContext);
 
-	// Accès au hook personnalisé
-	const { totalPanier } = useCalculsPanier();
+	if (!user) {
+		return (
+			<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+				<Text style={{ fontSize: 18 }}>⛔ Veuillez vous connecter pour accéder à votre panier.</Text>
+			</View>
+		);
+	}
+
+	// Affiche un écran de chargement en cas de chargements
+	if (loading) {
+		return (
+			<View style={styles.loaderContainer}>
+				<ActivityIndicator size="large" color="#1c5be4ff" />
+				<Text style={{ marginTop: 10 }}>Chargement du panier...</Text>
+			</View>
+		);
+	}
 
 	return (
 		<View style={styles.container}>

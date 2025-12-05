@@ -1,13 +1,9 @@
 import React, { useState, useEffect, useContext, useCallback, useMemo, memo } from "react";
 import { ActivityIndicator } from "react-native"; 
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, FlatList, View, TextInput, TouchableOpacity } from "react-native";
 import styles from "../Styles/Styles";
 import { ArticleContext } from "../Context/ArticleContext";
-import { PanierContext } from "../Context/PanierContext";
 import { UserContext } from "../Context/UserContext";
-import { useCalculsPanier } from "../Hooks/useCalculsPanier";
-import { FavorisContext } from "../Context/FavorisContext";
 import ArticlesItem from "../Components/FlatList/ArticlesItem.jsx";
 import { SERVER_URL } from "@env";
 
@@ -23,13 +19,7 @@ const CatalogueScreen = memo(({ navigation }) => {
 
 	// Accès au context
 	const { articles, setArticles } = useContext(ArticleContext);
-	const { favoris, toggleFavoris } = useContext(FavorisContext);
-	const { ajouterAuPanier } = useContext(PanierContext);
-	const { user } = useContext(UserContext);
-	const isLogin = !!user; // ← Récupéré du contexte
-
-	// Accès au hook personnalisé
-	const { totalPanier, nombreArticlesPanier } = useCalculsPanier();
+	const { user, favoris, toggleFavoris, ajouterAuPanier, isLogin, totalPanier, nombreArticlesPanier } = useContext(UserContext);
 
 	useEffect(() => {
 		const chargerArticles = async () => {
@@ -129,7 +119,7 @@ const CatalogueScreen = memo(({ navigation }) => {
 	if (loading) {
 		return (
 			<View style={styles.loaderContainer}>
-				<ActivityIndicator size="large" color="#3498db" />
+				<ActivityIndicator size="large" color="#1c5be4ff" />
 				<Text style={{ marginTop: 10 }}>Chargement des articles...</Text>
 			</View>
 		);

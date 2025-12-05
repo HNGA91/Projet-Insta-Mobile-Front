@@ -186,16 +186,20 @@ export default StyleSheet.create({
 		borderRadius: 8,
 		padding: 12,
 		marginTop: 25,
+		minHeight: 100,
 	},
 
 	image: {
 		width: 80,
 		height: 80,
 		borderRadius: 8,
+		flexShrink: 0,
 	},
 
 	info: {
+		flex: 1,
 		marginLeft: 12,
+		marginRight: 12,
 		justifyContent: "center",
 	},
 
