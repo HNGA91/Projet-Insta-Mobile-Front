@@ -60,7 +60,7 @@ export const UserProvider = ({ children }) => {
 	// Synchroniser panier et favoris avec MongoDB
 	useEffect(() => {
 		if (!user) return;
-		if (!lastSync || Date.now() - lastSync < 1000) return;
+		if (!lastSync || Date.now() - lastSync < 5000) return;
 
 		const syncData = async () => {
 			try {
@@ -123,7 +123,7 @@ export const UserProvider = ({ children }) => {
 					// Étape 4: Cette fonction est appelée pour CHAQUE item du panier
 					(acc, item) =>
 						// Initialisation : acc = 0
-						acc + acc + item.prix * (item.quantite || 1),
+						acc + item.prix * (item.quantite || 1),
 					0 // Permetd'initialiser l'acc à 0 ou de retourner 0 si le panier est vide
 				);
 				// Optimisation du calcule du nombre d'article dans le panier
@@ -184,7 +184,7 @@ export const UserProvider = ({ children }) => {
 
 	// Fonction toggle favoris (Ajouter / Retirer)
 	const toggleFavoris = useCallback(
-		(article, user) => {
+		(article) => {
 			if (!user) {
 				Alert.alert("⛔ Connexion requise", "Veuillez vous connecter pour ajouter aux favoris");
 				return;
